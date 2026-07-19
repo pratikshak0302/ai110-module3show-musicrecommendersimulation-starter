@@ -149,10 +149,15 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     dance_pref = user_prefs.get("target_danceability", user_prefs.get("danceability"))
     valence_pref = user_prefs.get("target_valence", user_prefs.get("valence"))
 
-    weights = {
-        "genre": 0.25, "mood": 0.20, "energy": 0.15,
+    # Scoring experiment: double energy's weight (0.15 -> 0.30) and halve
+    # genre's (0.25 -> 0.125). These raw values sum to 1.025, so we renormalize
+    # by their total to keep the weight set summing to exactly 1.0.
+    raw_weights = {
+        "genre": 0.125, "mood": 0.20, "energy": 0.30,
         "tempo": 0.10, "danceability": 0.15, "valence": 0.15,
     }
+    total_weight = sum(raw_weights.values())  # 1.025
+    weights = {name: w / total_weight for name, w in raw_weights.items()}
 
     reasons: List[str] = []
     weighted_sum = 0.0
