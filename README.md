@@ -2,17 +2,9 @@
 
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
+This project implements a simple content-based music recommender system that simulates how platforms like Spotify recommend songs. The system represents songs and user preferences as data, compares song features against a user's taste profile, and calculates a weighted similarity score. Songs with the highest scores are ranked and recommended.
 
-Your goal is to:
-
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-Replace this paragraph with your own summary of what your version does.
-
+The goal of this project is to understand how recommendation systems transform raw data into personalized suggestions, how scoring algorithms influence results, and what limitations or biases can appear in simple AI systems.
 ---
 
 ## How The System Works
@@ -36,10 +28,32 @@ Preferred Mood
 Preferred Energy
 Preferred Tempo (BPM)
 - How does your `Recommender` compute a score for each song
+Each song receives a weighted similarity score based on how closely it matches the user's preferences.
+
+The scoring system considers:
+
+| Feature | Weight |
+|---------|--------|
+| Genre Match | 0.25 |
+| Mood Match | 0.20 |
+| Energy Similarity | 0.15 |
+| Tempo Similarity | 0.10 |
+| Danceability Similarity | 0.15 |
+| Valence Similarity | 0.15 |
+
+Categorical features such as genre and mood receive a higher score when they match the user's preference. Numerical features such as energy, tempo, danceability, and valence are scored based on how close they are to the user's target values.
+
+The recommender calculates a score for every song, sorts songs from highest to lowest score, and returns the top K recommendations.
+
+Example flow:
+
+User Preferences → Load Songs → Compare Features → Calculate Weighted Score → Rank Songs → Return Recommendations
+
 - How do you choose which songs to recommend
 
 You can include a simple diagram or bullet list if helpful.
 
+```mermaid
 flowchart TD
     A[User Preferences] --> B[Load songs.csv]
     B --> C[Loop Through Each Song]
@@ -65,7 +79,7 @@ flowchart TD
     
     M --> N[Sort Scores Descending]
     N --> O[Return Top K Recommendations]
-
+```
 ---
 
 ## Getting Started
@@ -168,16 +182,13 @@ Captured from `python -m src.main` (top 5 per profile).
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+This recommender has several limitations:
 
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
-
+- The system only works with a small dataset of songs, so recommendations may not represent the diversity of real music platforms.
+- The system relies only on song features and does not consider user behavior such as listening history, skips, likes, or playlists.
+- Genre and mood have strong influence on recommendations, which can create a filter bubble by repeatedly suggesting similar songs.
+- Songs with uncommon combinations of features may receive lower scores because the scoring system does not fully understand complex musical preferences.
+- The recommender does not understand lyrics, cultural context, or personal meaning behind songs.
 ---
 
 ## Reflection
@@ -188,8 +199,11 @@ Read and complete `model_card.md`:
 
 Write 1 to 2 paragraphs here about what you learned:
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+This project helped me understand how recommendation systems transform user preferences and item features into predictions. I learned that even a simple scoring algorithm can create personalized recommendations by comparing data points such as genre, mood, and energy. However, the quality of recommendations depends heavily on the data and the weights chosen in the algorithm.
+
+Using AI coding assistants helped me design the scoring logic, debug implementation issues, and think through possible biases. I also learned that AI suggestions need to be verified by testing the actual results because a recommendation that looks mathematically correct may still produce unexpected outcomes. The biggest surprise was how simple rules can create recommendations that feel personalized, while still having limitations like filter bubbles and lack of true understanding of user preferences.
+
+If I extended this project, I would add more songs, include collaborative filtering based on multiple users, learn preferences from user feedback, and use more advanced models that understand deeper relationships between songs.
 
 
 

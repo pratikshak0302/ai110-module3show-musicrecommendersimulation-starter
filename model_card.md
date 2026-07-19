@@ -2,60 +2,52 @@
 
 ## 1. Model Name  
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
+**VibeMatch 1.0** — a content-based music recommender simulation.
 
 ---
 
 ## 2. Intended Use  
 
-Describe what your recommender is designed to do and who it is for. 
+**Goal / task.** VibeMatch takes a listener's stated taste (a preferred genre, mood, and target values for energy, tempo, danceability, and valence) and returns a ranked list of songs from a small catalog, each with a short reason for its score. It answers one question: *"given what you say you like, which songs in this catalog fit best?"*
 
-Prompts:  
+**Assumptions about the user.** It assumes the listener can describe their taste as explicit preferences up front, and that a good recommendation is simply the song whose features are closest to those preferences.
 
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+**Intended use.** This is a **classroom / learning tool**. It exists to demonstrate how content-based filtering turns song features and user preferences into a score, and to make the scoring transparent enough to inspect and experiment with.
+
+**Non-intended use.** It is **not** built for real listeners or production use. It should not be used to make actual music-discovery decisions, to compare or rank real artists, or in any setting where its output affects what real people hear — the catalog is tiny, the scoring is deliberately simple, and it has no listening history, personalization, or fairness safeguards.
 
 ---
 
 ## 3. How the Model Works  
 
-Explain your scoring approach in simple language.  
+Think of it like a checklist scored against your taste. You describe what you want — a genre, a mood, and roughly how energetic, fast, danceable, and upbeat the music should be. The model then walks through every song in the catalog and asks, feature by feature, "how close is this song to what you asked for?"
 
-Prompts:  
+For genre and mood it's all-or-nothing: the song either matches your pick or it doesn't. For the number-based features (energy, tempo, danceability, valence) it gives partial credit — the closer the song's value is to your target, the more points it earns for that feature.
 
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
+Not every feature counts equally. Each one has a **weight** that says how much it matters, and the model adds up the weighted points into a single score between 0 and 1. Songs are then sorted from highest to lowest, and the top few are shown to you along with a plain-language reason for each.
 
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+**What changed from the starter logic:** I expanded the score to use six features instead of just a couple, made the numeric features award partial credit for "close enough" instead of exact matches, and ran a weighting experiment that increased the importance of energy and reduced the importance of genre (see the README experiment and §6).
 
 ---
 
 ## 4. Data  
 
-Describe the dataset the model uses.  
+The catalog lives in `data/songs.csv` and holds **10 songs**. Each song has a title, artist, and six taste features: genre, mood, energy, tempo (BPM), valence, danceability, and acousticness.
 
-Prompts:  
+**Genres represented:** pop, lofi (×3), rock, ambient, jazz, synthwave, indie pop. **Moods represented:** happy, chill, intense, relaxed, focused, moody.
 
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
+I did not add or remove songs — the recommender is built and evaluated on the provided starter dataset.
+
+**What's missing:** the catalog is small and uneven — lofi is over-represented while most other genres appear only once. Whole swaths of musical taste are absent (hip-hop, classical, country, metal, electronic subgenres, non-English music), and there is no data on lyrics, language, era, or popularity. This limits how meaningfully the model can serve any listener whose taste falls outside the handful of genres present.
 
 ---
 
 ## 5. Strengths  
 
-Where does your system seem to work well  
-
-Prompts:  
-
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+- **Transparent and explainable.** Every recommendation comes with a per-feature breakdown, so it is always clear *why* a song ranked where it did — a real advantage over black-box recommenders.
+- **Works well for clearly-defined tastes.** When a listener's genre, mood, and energy all point the same direction (e.g. the Chill Lofi profile), the top picks are intuitive and score very high (0.98).
+- **Captures "close enough" sensibly.** Partial credit on numeric features means a song that's slightly off-target still competes, matching the intuition that taste is a spectrum, not an exact value.
+- **Easy to experiment with.** Because scoring is just weighted features, changing a single weight visibly reshapes the results — which made the energy-vs-genre experiment easy to run and reason about.
 
 ---
 
@@ -97,23 +89,22 @@ These limitations were identified by inspecting `score_song` in `recommender.py`
 
 ## 8. Future Work  
 
-Ideas for how you would improve the model next.  
-
-Prompts:  
-
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+- **Grow and balance the catalog.** More songs across more genres would reduce the filter-bubble problem where a rock or jazz fan only ever sees one or two tracks.
+- **Soften categorical matching.** Give partial credit for related genres and moods (e.g. "pop" ↔ "indie pop", "chill" ↔ "relaxed") instead of exact-match-only, so near-misses aren't unfairly zeroed out.
+- **Add a diversity/novelty step.** Penalize near-duplicate results so the top 5 isn't two nearly-identical songs, and mix in some variety rather than the single closest cluster.
+- **Learn preferences instead of asking for them.** Infer taste from listening history rather than requiring the user to type in numeric targets they can't realistically estimate.
+- **Richer features and better explanations.** Consider lyrics, language, artist, and era, and turn the score breakdown into friendlier natural-language reasons.
 
 ---
 
 ## 9. Personal Reflection  
 
-A few sentences about your experience.  
+**Biggest learning moment.** The clearest lesson was how much the *weights* — not the features themselves — decide the outcome. Watching a single change (doubling energy, halving genre) pull cross-genre songs into a listener's top 5 made "algorithmic bias" feel concrete: no one intended a rock fan to see pop tracks, it just fell out of the numbers.
 
-Prompts:  
+**How AI coding assistants helped.** The assistant was fastest at the mechanical, well-defined parts — wiring up CSV loading, structuring the weighted-scoring loop, generating the per-feature explanations, and setting up the three test profiles. It also helped me run a clean before/after comparison for the weight experiment and organize the model card.
 
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+**Where AI suggestions needed verification.** I couldn't take the scoring on trust — I had to actually run the profiles and check that scores matched the explanations, that weights summed to 1 after renormalization, and that the "close enough" numeric similarity behaved correctly (especially tempo, which lives on a different scale than the 0–1 features). The suggestions were plausible-looking but had to be validated against real output before I believed them.
+
+**What surprised me about simple recommendation algorithms.** How convincing a very simple rule can look. With only weighted feature-matching and no machine learning at all, the top picks felt genuinely "right" — which is exactly what makes the hidden biases dangerous: a confident, sensible-looking list can still be quietly funneling people toward the same few songs.
+
+**Future improvements.** I'd most want to add related-genre/mood matching and a diversity step, since those two changes would directly address the filter-bubble and near-duplicate problems I saw during evaluation.
